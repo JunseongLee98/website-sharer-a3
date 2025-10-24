@@ -1,6 +1,23 @@
 import fetch from 'node-fetch';
 import parser from 'node-html-parser';
 
+// Function to sanitize HTML content to prevent XSS attacks
+function sanitizeHTML(html) {
+    // Remove script tags and their content
+    html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    
+    // Remove javascript: protocols
+    html = html.replace(/javascript:/gi, '');
+    
+    // Remove event handlers (onclick, onload, etc.)
+    html = html.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+    
+    // Remove dangerous attributes
+    html = html.replace(/\s*(on\w+|javascript:|data:)\s*=\s*["'][^"']*["']/gi, '');
+    
+    return html;
+}
+
 async function getURLPreview(url){
     try {
         // Fetch the webpage content
@@ -66,7 +83,14 @@ async function getURLPreview(url){
             }
         }
 
-        // Create HTML preview with enhanced styling
+        // Sanitize all text content to prevent XSS
+        ogTitle = sanitizeHTML(ogTitle);
+        ogDescription = sanitizeHTML(ogDescription);
+        ogSiteName = sanitizeHTML(ogSiteName);
+        ogType = sanitizeHTML(ogType);
+        ogLocale = sanitizeHTML(ogLocale);
+
+        // Create HTML preview with enhanced styling and security
         let previewHTML = `<div style="max-width: 320px; border: solid 2px #e1e5e9; padding: 15px; text-align: center; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.15); background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); margin: 10px auto; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'">`;
         
         previewHTML += `<a href="${ogUrl}" style="text-decoration: none; color: inherit; display: block;">`;

@@ -16,6 +16,14 @@ router.post('/', async (req, res) => {
             });
         }
 
+        // Check if MongoDB is connected
+        if (!req.models || !req.models.Post) {
+            return res.status(500).json({
+                status: "error",
+                error: "Database not connected. Please set up MongoDB Atlas."
+            });
+        }
+
         // Create a new Post object
         const newPost = new req.models.Post({
             url: url,
@@ -42,6 +50,14 @@ router.post('/', async (req, res) => {
 // GET /api/v2/posts
 router.get('/', async (req, res) => {
     try {
+        // Check if MongoDB is connected
+        if (!req.models || !req.models.Post) {
+            return res.status(500).json({
+                status: "error",
+                error: "Database not connected. Please set up MongoDB Atlas."
+            });
+        }
+
         // Find all Posts in your MongoDB database
         const posts = await req.models.Post.find({}).sort({ created_date: -1 });
 
