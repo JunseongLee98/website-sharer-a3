@@ -1,18 +1,8 @@
-import express from 'express';
 import fetch from 'node-fetch';
-import { parse } from 'node-html-parser';
+import parser from 'node-html-parser';
 
-const router = express.Router();
-
-// GET /api/v1/urls/preview
-router.get('/urls/preview', async (req, res) => {
+async function getURLPreview(url){
     try {
-        const url = req.query.url;
-        
-        if (!url) {
-            return res.status(400).send('URL parameter is required');
-        }
-
         // Fetch the webpage content
         const response = await fetch(url);
         
@@ -21,7 +11,7 @@ router.get('/urls/preview', async (req, res) => {
         }
 
         const html = await response.text();
-        const root = parse(html);
+        const root = parser.parse(html);
 
         // Extract OpenGraph meta tags
         const metaTags = root.querySelectorAll('meta');
@@ -107,12 +97,12 @@ router.get('/urls/preview', async (req, res) => {
 
         previewHTML += `</div>`;
 
-        res.send(previewHTML);
+        return previewHTML;
 
     } catch (error) {
         console.error('Error fetching URL preview:', error);
-        res.status(500).send(`Error: ${error.message}`);
+        return `<div style="max-width: 320px; border: solid 2px #dc3545; padding: 15px; text-align: center; border-radius: 12px; background: #f8d7da; color: #721c24; margin: 10px auto;">Error: ${error.message}</div>`;
     }
-});
+}
 
-export default router;
+export default getURLPreview;
