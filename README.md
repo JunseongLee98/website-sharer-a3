@@ -18,7 +18,7 @@ I added a **username** field as the creative component. Users must enter their u
 No other students helped directly with this code.
 
 ## Features
-
+  
 ### URL Preview
 - Extract and display OpenGraph metadata (title, description, image, site name, type, locale)
 - Beautiful card-based preview with hover effects
@@ -74,7 +74,7 @@ No other students helped directly with this code.
 - **Error Handling**: Graceful handling of database connection failures
 
 ## Deployment
-The application is deployed on Render.com with MongoDB Atlas for the database. The connection string is configured to use environment variables for security.
+The application is deployed on Render.com (or Azure) with MongoDB Atlas for the database. The connection string is configured to use environment variables for security.
 
 ### MongoDB Atlas Setup for Deployment
 1. Create a MongoDB Atlas cluster
@@ -82,3 +82,28 @@ The application is deployed on Render.com with MongoDB Atlas for the database. T
 3. Add your IP address to the whitelist (or use 0.0.0.0/0 for Render)
 4. Get your connection string
 5. Set the `MONGODB_URI` environment variable in Render with your connection string
+
+## A4
+
+### Deployed Website (Custom Domain + HTTPS)
+- URL: https://YOUR-CUSTOM-DOMAIN-HERE (replace once deployed)
+
+### What Changed in A4
+- XSS mitigations added on the client when rendering `username`, `description`, and status messages using HTML escaping.
+- Safer preview rendering: plain error strings are inserted via `textContent` instead of `innerHTML`.
+- Deployment instructions updated for custom domain and HTTPS.
+
+### Custom Domain & HTTPS (Render)
+1. Purchase/claim a domain (e.g., from `https://nc.me`).
+2. In Render, open your Web Service → Settings → Custom Domains → Add Custom Domain.
+3. Copy the provided DNS records and add them at your domain registrar:
+   - Typically a CNAME from `www` → your Render subdomain, and optionally an A/ALIAS for apex.
+4. Wait for DNS to propagate; Render will auto-provision TLS (HTTPS) via Let’s Encrypt.
+5. Set your primary domain in Render and verify the site loads over HTTPS.
+
+### Custom Domain & HTTPS (Azure App Service alternative)
+1. Deploy Node app to Azure App Service.
+2. In App Service → Custom domains → Add custom domain → Verify via TXT/CNAME.
+3. Map domain (CNAME or A record) at registrar to your Azure app hostname.
+4. Enable HTTPS: TLS/SSL settings → Private Key Certificates (App Service Managed) → Create binding.
+5. Confirm site loads over HTTPS at the custom domain.

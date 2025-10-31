@@ -83,7 +83,13 @@ async function loadPosts(){
 }
 
 function displayPreviews(previewHTML){
-    document.getElementById("url_previews").innerHTML = previewHTML;
+    const container = document.getElementById("url_previews");
+    // If it looks like HTML markup, render as HTML; otherwise, set as textContent to avoid XSS
+    if (/<[a-z][\s\S]*>/i.test(previewHTML)) {
+        container.innerHTML = previewHTML;
+    } else {
+        container.textContent = previewHTML;
+    }
 }
 
 function displayPosts(posts){
@@ -100,10 +106,10 @@ function displayPosts(posts){
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h6 class="card-subtitle mb-1 text-muted">Posted by ${post.username}</h6>
+                        <h6 class="card-subtitle mb-1 text-muted">Posted by ${escapeHTML(post.username)}</h6>
                         <small class="text-muted">${new Date(post.created_date).toLocaleString()}</small>
                     </div>
-                    <p class="card-text">${post.description}</p>
+                    <p class="card-text">${escapeHTML(post.description)}</p>
                     ${post.htmlPreview}
                 </div>
             </div>
@@ -116,7 +122,7 @@ function displayPosts(posts){
 function showStatusMessage(message, type) {
     const statusDiv = document.getElementById("statusMessage");
     statusDiv.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
-        ${message}
+        ${escapeHTML(message)}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>`;
     
@@ -130,3 +136,12 @@ function showStatusMessage(message, type) {
 document.addEventListener('DOMContentLoaded', function() {
     loadPosts();
 });
+
+// Basic HTML escaping to prevent XSS when rendering user-provided content
+const escapeHTML = str => String(str).replace(/[&<>\'\"]/g, tag => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+}[tag]));

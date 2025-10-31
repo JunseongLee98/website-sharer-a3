@@ -1,4 +1,4 @@
-# Deployment Guide for Website Sharer A3
+# Deployment Guide for Website Sharer A3/A4
 
 ## Step 1: MongoDB Atlas Setup
 
@@ -27,7 +27,7 @@
 2. Sign up/Login with GitHub
 3. Click "New +" and select "Web Service"
 4. Connect your GitHub repository: https://github.com/JunseongLee98/website-sharer-a3
-5. Select the `a3` branch
+5. Select the `a4` branch
 6. Configure the service:
    - **Name**: website-sharer-a3
    - **Runtime**: Node
@@ -38,7 +38,14 @@
    - **Value**: Your MongoDB Atlas connection string
 8. Click "Create Web Service"
 9. Wait for deployment to complete
-10. Your app will be available at: https://website-sharer-a3.onrender.com
+10. Your app will be available at: https://website-sharer-a4.onrender.com (or your custom domain in A4)
+
+## Step 2b: Custom Domain + HTTPS on Render (A4)
+1. Go to your Render Web Service → Settings → Custom Domains → Add Custom Domain
+2. Enter your domain (from `https://nc.me` or another registrar)
+3. Add the DNS records shown by Render at your registrar (CNAME for `www`, ALIAS/A for apex if desired)
+4. Wait for DNS propagation; Render auto-provisions HTTPS via Let’s Encrypt
+5. Set your primary domain in Render and verify HTTPS works
 
 ## Step 3: Test Your Deployment
 
@@ -54,3 +61,12 @@
 - If deployment fails, check the Render logs
 - Make sure your MongoDB Atlas cluster is running
 - Verify IP whitelist includes 0.0.0.0/0 for Render
+
+## Azure App Service Alternative (A4)
+1. Create Azure App Service (Node) and deploy your repo/branch `a4`
+2. Configure `MONGODB_URI` in Application Settings
+3. Add custom domain in "Custom domains" and verify via CNAME/TXT
+4. Enable HTTPS in TLS/SSL settings with App Service Managed Certificate
+5. Test the custom domain over HTTPS
+
+
