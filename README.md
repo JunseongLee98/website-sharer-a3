@@ -86,7 +86,7 @@ The application is deployed on Render.com (or Azure) with MongoDB Atlas for the 
 ## A4
 
 ### Deployed Website (Custom Domain + HTTPS)
-- URL: https://YOUR-CUSTOM-DOMAIN-HERE (replace once deployed)
+- URL: https://njs05153.shop
 
 ### What Changed in A4
 - XSS mitigations added on the client when rendering `username`, `description`, and status messages using HTML escaping.

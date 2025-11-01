@@ -84,7 +84,9 @@ async function getURLPreview(url){
         }
 
         // Sanitize all text content to prevent XSS
+        ogUrl = sanitizeHTML(ogUrl);
         ogTitle = sanitizeHTML(ogTitle);
+        ogImage = sanitizeHTML(ogImage);
         ogDescription = sanitizeHTML(ogDescription);
         ogSiteName = sanitizeHTML(ogSiteName);
         ogType = sanitizeHTML(ogType);
