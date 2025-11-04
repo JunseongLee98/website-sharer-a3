@@ -8,8 +8,9 @@ const mongooseOptions = {
     serverSelectionTimeoutMS: 30000, // 30 seconds
     socketTimeoutMS: 45000, // 45 seconds
     connectTimeoutMS: 30000, // 30 seconds
-    bufferCommands: false, // Disable mongoose buffering
-    bufferMaxEntries: 0 // Disable mongoose buffering
+    // Note: bufferCommands defaults to true, which allows Mongoose to queue operations
+    // until connection is established. This prevents errors when operations are called
+    // before connection completes.
 };
 
 // Try to connect, but don't crash if it fails
