@@ -3,6 +3,14 @@ import mongoose from 'mongoose';
 // Connect to MongoDB Atlas - Replace with your actual connection string
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://username:password@cluster.mongodb.net/websharer?retryWrites=true&w=majority';
 
+// Check if MONGODB_URI is set
+if (!process.env.MONGODB_URI) {
+    console.warn('WARNING: MONGODB_URI environment variable is not set!');
+    console.warn('Please set MONGODB_URI in Render → Environment tab');
+} else {
+    console.log('MONGODB_URI is set (connection string hidden for security)');
+}
+
 // Connection options to prevent timeout errors
 const mongooseOptions = {
     serverSelectionTimeoutMS: 30000, // 30 seconds
@@ -14,10 +22,15 @@ const mongooseOptions = {
 };
 
 // Connect to MongoDB
+console.log('Attempting to connect to MongoDB...');
 mongoose.connect(MONGODB_URI, mongooseOptions).catch(err => {
-    console.log('MongoDB connection failed:', err.message);
-    console.log('Please set up MongoDB Atlas and update the MONGODB_URI environment variable');
-    console.log('Make sure MONGODB_URI is set in your deployment platform (Render/Azure)');
+    console.error('MongoDB connection failed:', err.message);
+    console.error('Error details:', err);
+    console.error('Please check:');
+    console.error('1. MONGODB_URI is set in Render → Environment tab');
+    console.error('2. Connection string format is correct');
+    console.error('3. Password in connection string is URL-encoded');
+    console.error('4. MongoDB Atlas Network Access allows 0.0.0.0/0 (all IPs)');
 });
 
 const db = mongoose.connection;
@@ -38,26 +51,49 @@ db.once('open', () => {
 // Helper function to wait for MongoDB connection
 export const waitForConnection = () => {
     return new Promise((resolve, reject) => {
-        if (mongoose.connection.readyState === 1) {
+        // Check if MONGODB_URI is set
+        if (!process.env.MONGODB_URI) {
+            reject(new Error('MONGODB_URI environment variable is not set. Please set it in Render → Environment tab.'));
+            return;
+        }
+
+        const currentState = mongoose.connection.readyState;
+        console.log(`MongoDB connection state: ${currentState} (0=disconnected, 1=connected, 2=connecting, 3=disconnecting)`);
+
+        if (currentState === 1) {
             // Already connected
+            console.log('MongoDB already connected');
             resolve();
             return;
         }
         
-        if (mongoose.connection.readyState === 0) {
-            // Not connected yet, wait for connection
-            db.once('open', () => resolve());
-            db.once('error', (err) => reject(err));
-            
-            // Timeout after 30 seconds
-            setTimeout(() => {
-                reject(new Error('MongoDB connection timeout after 30 seconds'));
-            }, 30000);
-        } else {
-            // Connecting or disconnecting
-            db.once('open', () => resolve());
-            db.once('error', (err) => reject(err));
+        if (currentState === 0) {
+            // Not connected yet - connection might have failed
+            console.log('MongoDB not connected, checking if connection was attempted...');
+            // Try to connect again if not already attempting
+            if (!mongoose.connection.readyState) {
+                mongoose.connect(MONGODB_URI, mongooseOptions).catch(err => {
+                    reject(new Error(`MongoDB connection failed: ${err.message}. Check MONGODB_URI and Network Access settings.`));
+                });
+            }
         }
+
+        // Set up event listeners
+        const timeout = setTimeout(() => {
+            reject(new Error(`MongoDB connection timeout after 30 seconds. Current state: ${mongoose.connection.readyState}. Check MONGODB_URI and MongoDB Atlas Network Access (should allow 0.0.0.0/0).`));
+        }, 30000);
+
+        db.once('open', () => {
+            clearTimeout(timeout);
+            console.log('MongoDB connection established');
+            resolve();
+        });
+
+        db.once('error', (err) => {
+            clearTimeout(timeout);
+            console.error('MongoDB connection error:', err);
+            reject(new Error(`MongoDB connection error: ${err.message}. Check connection string format and Network Access settings.`));
+        });
     });
 };
 
