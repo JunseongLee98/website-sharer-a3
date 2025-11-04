@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 
 // Connect to MongoDB Atlas - Replace with your actual connection string
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://username:password@cluster.mongodb.net/websharer?retryWrites=true&w=majority';
+// IMPORTANT: Set MONGODB_URI in Render → Environment tab, not here!
+// The connection string below is just a fallback and should not be used in production
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://wnstjd98_db_user:%3CSyjs220120%21%3E@cluster0.zoxmbfy.mongodb.net/websharer?retryWrites=true&w=majority';
 
 // Check if MONGODB_URI is set
 if (!process.env.MONGODB_URI) {
