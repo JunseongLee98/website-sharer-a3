@@ -48,6 +48,15 @@ async function postUrl(){
             })
         });
         
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text();
+            showStatusMessage(`Error: Server returned ${response.status} ${response.statusText}`, "error");
+            console.error("Non-JSON response:", text);
+            return;
+        }
+        
         const result = await response.json();
         
         if (response.ok && result.status === "success") {
@@ -59,10 +68,11 @@ async function postUrl(){
             // Refresh posts
             loadPosts();
         } else {
-            showStatusMessage(`Error: ${result.error}`, "error");
+            showStatusMessage(`Error: ${result.error || 'Unknown error'}`, "error");
         }
     } catch (error) {
         showStatusMessage(`Error: ${error.message}`, "error");
+        console.error("Post URL error:", error);
     }
 }
 
@@ -70,15 +80,25 @@ async function loadPosts(){
     try {
         const response = await fetch(`/api/${apiVersion}/posts`);
         
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text();
+            console.error("Non-JSON response from /api/posts:", text);
+            showStatusMessage("Error loading posts: Server returned invalid response", "error");
+            return;
+        }
+        
         if (response.ok) {
             const posts = await response.json();
             displayPosts(posts);
         } else {
-            const errorText = await response.text();
-            showStatusMessage("Error loading posts", "error");
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            showStatusMessage(`Error loading posts: ${errorData.error || response.statusText}`, "error");
         }
     } catch (error) {
-        showStatusMessage("Error loading posts", "error");
+        showStatusMessage(`Error loading posts: ${error.message}`, "error");
+        console.error("Load posts error:", error);
     }
 }
 

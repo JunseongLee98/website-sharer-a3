@@ -10,7 +10,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(express.static(path.join(__dirname)));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -29,16 +28,15 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routes
+// API routes - must come before static middleware
+app.use('/api/v1', (await import('./routes/api/v1/apiv1.js')).default);
+app.use('/api/v2', (await import('./routes/api/v2/apiv2.js')).default);
+
+// Static files and root route - must come after API routes
+app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-// API v1 routes
-app.use('/api/v1', (await import('./routes/api/v1/apiv1.js')).default);
-
-// API v2 routes
-app.use('/api/v2', (await import('./routes/api/v2/apiv2.js')).default);
 
 // Start server
 app.listen(port, () => {
