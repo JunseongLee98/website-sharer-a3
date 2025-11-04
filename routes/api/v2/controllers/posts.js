@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
             console.error('MongoDB connection error:', connectionError);
             return res.status(500).json({
                 status: "error",
-                error: "Database connection failed. Please check MONGODB_URI environment variable and MongoDB Atlas settings."
+                error: `Database connection failed: ${connectionError.message}. Please check MONGODB_URI environment variable and MongoDB Atlas Network Access settings.`
             });
         }
 
@@ -45,16 +45,24 @@ router.post('/', async (req, res) => {
         });
 
         // Save the post to the database
-        await newPost.save();
+        try {
+            await newPost.save();
+        } catch (saveError) {
+            console.error('Error saving post:', saveError);
+            return res.status(500).json({
+                status: "error",
+                error: `Failed to save post: ${saveError.message}`
+            });
+        }
 
         // Return success response
         res.json({ status: "success" });
 
     } catch (error) {
-        console.log(error);
+        console.error('Error in POST /api/v2/posts:', error);
         res.status(500).json({
             status: "error",
-            error: error.message
+            error: error.message || "An unexpected error occurred while creating the post"
         });
     }
 });

@@ -68,10 +68,12 @@ async function postUrl(){
             // Refresh posts
             loadPosts();
         } else {
-            showStatusMessage(`Error: ${result.error || 'Unknown error'}`, "error");
+            const errorMsg = result.error || 'Unknown error';
+            showStatusMessage(`Error: ${errorMsg}`, "error");
+            console.error("Post URL API error:", result);
         }
     } catch (error) {
-        showStatusMessage(`Error: ${error.message}`, "error");
+        showStatusMessage(`Error: ${error.message || 'Failed to connect to server'}`, "error");
         console.error("Post URL error:", error);
     }
 }
