@@ -3,10 +3,20 @@ import mongoose from 'mongoose';
 // Connect to MongoDB Atlas - Replace with your actual connection string
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://username:password@cluster.mongodb.net/websharer?retryWrites=true&w=majority';
 
+// Connection options to prevent timeout errors
+const mongooseOptions = {
+    serverSelectionTimeoutMS: 30000, // 30 seconds
+    socketTimeoutMS: 45000, // 45 seconds
+    connectTimeoutMS: 30000, // 30 seconds
+    bufferCommands: false, // Disable mongoose buffering
+    bufferMaxEntries: 0 // Disable mongoose buffering
+};
+
 // Try to connect, but don't crash if it fails
-mongoose.connect(MONGODB_URI).catch(err => {
+mongoose.connect(MONGODB_URI, mongooseOptions).catch(err => {
     console.log('MongoDB connection failed:', err.message);
-    console.log('Please set up MongoDB Atlas and update the MONGODB_URI in models.js');
+    console.log('Please set up MongoDB Atlas and update the MONGODB_URI environment variable');
+    console.log('Make sure MONGODB_URI is set in your deployment platform (Render/Azure)');
 });
 
 const db = mongoose.connection;
