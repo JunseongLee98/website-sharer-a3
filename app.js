@@ -29,8 +29,19 @@ app.use((req, res, next) => {
 });
 
 // API routes - must come before static middleware
-app.use('/api/v1', (await import('./routes/api/v1/apiv1.js')).default);
-app.use('/api/v2', (await import('./routes/api/v2/apiv2.js')).default);
+try {
+    const apiV1Router = (await import('./routes/api/v1/apiv1.js')).default;
+    app.use('/api/v1', apiV1Router);
+} catch (error) {
+    console.error('Failed to load API v1 routes:', error);
+}
+
+try {
+    const apiV2Router = (await import('./routes/api/v2/apiv2.js')).default;
+    app.use('/api/v2', apiV2Router);
+} catch (error) {
+    console.error('Failed to load API v2 routes:', error);
+}
 
 // Static files and root route - must come after API routes
 app.use(express.static(path.join(__dirname)));
