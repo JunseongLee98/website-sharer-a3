@@ -3,6 +3,7 @@ import express from 'express';
 var router = express.Router();
 
 import getURLPreview from '../utils/urlPreviews.js';
+import { waitForConnection } from '../../../../models.js';
 
 // POST /api/v2/posts
 router.post('/', async (req, res) => {
@@ -21,6 +22,17 @@ router.post('/', async (req, res) => {
             return res.status(500).json({
                 status: "error",
                 error: "Database not connected. Please set up MongoDB Atlas."
+            });
+        }
+
+        // Wait for MongoDB connection before proceeding
+        try {
+            await waitForConnection();
+        } catch (connectionError) {
+            console.error('MongoDB connection error:', connectionError);
+            return res.status(500).json({
+                status: "error",
+                error: "Database connection failed. Please check MONGODB_URI environment variable and MongoDB Atlas settings."
             });
         }
 
@@ -55,6 +67,17 @@ router.get('/', async (req, res) => {
             return res.status(500).json({
                 status: "error",
                 error: "Database not connected. Please set up MongoDB Atlas."
+            });
+        }
+
+        // Wait for MongoDB connection before proceeding
+        try {
+            await waitForConnection();
+        } catch (connectionError) {
+            console.error('MongoDB connection error:', connectionError);
+            return res.status(500).json({
+                status: "error",
+                error: "Database connection failed. Please check MONGODB_URI environment variable and MongoDB Atlas settings."
             });
         }
 

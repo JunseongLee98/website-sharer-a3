@@ -13,7 +13,7 @@ const mongooseOptions = {
     // before connection completes.
 };
 
-// Try to connect, but don't crash if it fails
+// Connect to MongoDB
 mongoose.connect(MONGODB_URI, mongooseOptions).catch(err => {
     console.log('MongoDB connection failed:', err.message);
     console.log('Please set up MongoDB Atlas and update the MONGODB_URI environment variable');
@@ -21,10 +21,45 @@ mongoose.connect(MONGODB_URI, mongooseOptions).catch(err => {
 });
 
 const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+// Connection event handlers
+db.on('error', (err) => {
+    console.error('MongoDB connection error:', err);
+});
+
+db.on('disconnected', () => {
+    console.log('MongoDB disconnected');
+});
+
 db.once('open', () => {
     console.log('Connected to MongoDB Atlas');
 });
+
+// Helper function to wait for MongoDB connection
+export const waitForConnection = () => {
+    return new Promise((resolve, reject) => {
+        if (mongoose.connection.readyState === 1) {
+            // Already connected
+            resolve();
+            return;
+        }
+        
+        if (mongoose.connection.readyState === 0) {
+            // Not connected yet, wait for connection
+            db.once('open', () => resolve());
+            db.once('error', (err) => reject(err));
+            
+            // Timeout after 30 seconds
+            setTimeout(() => {
+                reject(new Error('MongoDB connection timeout after 30 seconds'));
+            }, 30000);
+        } else {
+            // Connecting or disconnecting
+            db.once('open', () => resolve());
+            db.once('error', (err) => reject(err));
+        }
+    });
+};
 
 // Define Post schema
 const postSchema = new mongoose.Schema({
