@@ -107,3 +107,45 @@ The application is deployed on Render.com (or Azure) with MongoDB Atlas for the 
 3. Map domain (CNAME or A record) at registrar to your Azure app hostname.
 4. Enable HTTPS: TLS/SSL settings → Private Key Certificates (App Service Managed) → Create binding.
 5. Confirm site loads over HTTPS at the custom domain.
+
+## A5
+
+### Deployed Website
+- URL: https://website-sharer-a3-lfis.onrender.com
+
+### What Changed in A5
+- Added authentication and session management using Azure AD (Microsoft Identity Platform)
+- Implemented login and logout functionality
+- Created v3 API with authentication requirements
+- Modified Post schema to automatically store username from authenticated session
+- Added user identity endpoint to check login status
+- Added username filtering to posts endpoint
+
+### Authentication Setup
+- Uses `express-session` for session management
+- Uses `microsoft-identity-express` for Azure AD authentication
+- Requires Azure AD App Registration with:
+  - Client ID (CLIENT_ID)
+  - Tenant ID (TENANT_ID)
+  - Client Secret (CLIENT_SECRET)
+  - Redirect URI configured in Azure AD (e.g., `https://yourdomain.com/redirect`)
+
+### Environment Variables Required
+- `CLIENT_ID` - Azure AD Application (client) ID
+- `TENANT_ID` - Azure AD Tenant ID
+- `CLIENT_SECRET` - Azure AD Client Secret
+- `REDIRECT_URI` - Redirect URI for authentication (e.g., `/redirect` or full URL)
+- `SESSION_SECRET` - Secret key for session encryption
+- `MONGODB_URI` - MongoDB connection string
+
+### v3 API Endpoints
+- `GET /api/v3/users/myIdentity` - Get current user identity (returns logged in status and user info)
+- `POST /api/v3/posts` - Create a new post (requires authentication, username from session)
+- `GET /api/v3/posts` - Retrieve all posts with previews (includes username field)
+- `GET /api/v3/posts?username=<username>` - Retrieve posts filtered by username
+- `GET /api/v3/urls/preview?url=<target_url>` - Generate URL preview
+
+### Authentication Routes
+- `GET /signin` - Sign in with Azure AD
+- `GET /signout` - Sign out and clear session
+- `GET /unauthorized` - Unauthorized access page

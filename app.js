@@ -1,13 +1,51 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import session from 'express-session';
 import models from './models.js';
+import MsIdExpress from 'microsoft-identity-express';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
+
+// Azure AD Authentication configuration
+const appSettings = {
+    appCredentials: {
+        clientId: process.env.CLIENT_ID || '',
+        tenantId: process.env.TENANT_ID || '',
+        clientSecret: process.env.CLIENT_SECRET || ''
+    },
+    authRoutes: {
+        redirect: process.env.REDIRECT_URI || `/redirect`,
+        unauthorized: "/unauthorized",
+        frontChannelLogout: "/sso_logout"
+    },
+    protectedResources: {
+        graphAPI: {
+            endpoint: "https://graph.microsoft.com/v1.0/me",
+            scopes: ["User.Read"]
+        }
+    }
+};
+
+// Initialize Azure AD authentication
+const msid = new MsIdExpress.WebAppAuthClientBuilder(appSettings).build();
+app.use(msid.initialize());
 
 // Middleware
 app.use(express.json());
@@ -42,6 +80,31 @@ try {
 } catch (error) {
     console.error('Failed to load API v2 routes:', error);
 }
+
+try {
+    const apiV3Router = (await import('./routes/api/v3/apiv3.js')).default;
+    app.use('/api/v3', apiV3Router);
+} catch (error) {
+    console.error('Failed to load API v3 routes:', error);
+}
+
+// Authentication routes
+app.get('/signin',
+    msid.signIn({
+        postLoginRedirect: "/",
+    }),
+);
+
+app.get('/signout',
+    msid.signOut({
+        postLogoutRedirect: "/",
+    }),
+);
+
+// Unauthorized route
+app.get('/unauthorized', (req, res) => {
+    res.status(401).send('Unauthorized');
+});
 
 // Static files and root route - must come after API routes
 app.use(express.static(path.join(__dirname)));
