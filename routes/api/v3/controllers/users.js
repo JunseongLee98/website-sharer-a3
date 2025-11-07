@@ -12,10 +12,29 @@ router.get('/myIdentity', (req, res) => {
             return res.json({ status: "loggedout" });
         }
 
+        // Extract user info from account object
+        // MSAL AccountInfo may have username/name directly or in idTokenClaims
+        const account = session.account;
+        const idTokenClaims = account.idTokenClaims || {};
+        
+        // Get username - try account.username first, then idTokenClaims.preferred_username or email
+        const username = account.username || 
+                        idTokenClaims.preferred_username || 
+                        idTokenClaims.email || 
+                        idTokenClaims.upn || 
+                        account.localAccountId || 
+                        '';
+        
+        // Get name - try account.name first, then idTokenClaims.name
+        let name = account.name || idTokenClaims.name || '';
+        if (!name && (idTokenClaims.given_name || idTokenClaims.family_name)) {
+            name = [idTokenClaims.given_name, idTokenClaims.family_name].filter(Boolean).join(' ');
+        }
+
         // User is logged in, return user info
         const userInfo = {
-            name: session.account.name || '',
-            username: session.account.username || ''
+            name: name.trim() || username,
+            username: username
         };
 
         res.json({

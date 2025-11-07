@@ -46,8 +46,16 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Get username from session
-        const username = session.account.username || '';
+        // Get username from session account
+        // MSAL AccountInfo may have username directly or in idTokenClaims
+        const account = session.account;
+        const idTokenClaims = account.idTokenClaims || {};
+        const username = account.username || 
+                        idTokenClaims.preferred_username || 
+                        idTokenClaims.email || 
+                        idTokenClaims.upn || 
+                        account.localAccountId || 
+                        '';
 
         // Create a new Post object
         const newPost = new req.models.Post({

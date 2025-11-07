@@ -128,7 +128,7 @@ The application is deployed on Render.com (or Azure) with MongoDB Atlas for the 
   - Client ID (CLIENT_ID)
   - Tenant ID (TENANT_ID)
   - Client Secret (CLIENT_SECRET)
-  - Redirect URI configured in Azure AD (e.g., `https://yourdomain.com/redirect`)
+  - Redirect URI configured in Azure AD (e.g., `https://website-sharer-a3-lfis.onrender.com/redirect`)
 
 ### Environment Variables Required
 - `CLIENT_ID` - Azure AD Application (client) ID
